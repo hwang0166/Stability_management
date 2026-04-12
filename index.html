@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+x<!DOCTYPE html>
 <html lang="ko">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>안정성 시험 관리 시스템 v3.0</title>
+    <title>안정성 시험 관리 시스템 v3.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
@@ -455,6 +455,37 @@
             text-align: center;
             padding: 6px 0;
         }
+
+        /* 자동 로그아웃 경고 토스트 */
+        #autoLogoutToast {
+            display: none;
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 99999;
+            background: var(--surface-container-lowest);
+            border: 1.5px solid var(--warning);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-float);
+            padding: 16px 20px;
+            min-width: 280px;
+            max-width: 340px;
+        }
+        #autoLogoutToast.visible { display: flex; flex-direction: column; gap: 10px; }
+        .toast-title {
+            font-size: 13px; font-weight: 700; color: var(--warning);
+            display: flex; align-items: center; gap: 7px;
+        }
+        .toast-body { font-size: 13px; color: var(--on-surface); line-height: 1.5; }
+        .toast-countdown {
+            font-size: 22px; font-weight: 800; color: var(--danger-text);
+            text-align: center; letter-spacing: -0.02em;
+        }
+        .toast-actions { display: flex; gap: 8px; }
+        .toast-actions button { flex: 1; padding: 8px 0; border: none; border-radius: var(--radius-md);
+            font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-family); }
+        .toast-btn-extend { background: var(--primary); color: #fff; }
+        .toast-btn-logout { background: var(--surface-container-high); color: var(--on-surface-variant); }
 
         /* 메인 콘텐츠 */
         #mainContent {
@@ -1528,6 +1559,55 @@
         }
 
         /* ════════════════════════════════════════
+           다중 시험조건 등록 — 공통 필드 & 카드
+        ════════════════════════════════════════ */
+        .common-fields {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+            padding: 16px 0; margin-bottom: 14px;
+            border-bottom: 1px solid var(--outline-variant);
+        }
+        .common-fields-label {
+            font-size: 11px; font-weight: 700; color: var(--on-surface-muted);
+            text-transform: uppercase; letter-spacing: 0.06em;
+            grid-column: span 2; margin: 0 0 2px;
+        }
+        #conditionList { margin-bottom: 4px; }
+        .condition-card {
+            background: var(--surface-container-low);
+            border-radius: var(--radius-md);
+            padding: 16px 18px; margin-bottom: 10px;
+        }
+        .condition-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .condition-card-title { font-size: 13px; font-weight: 700; color: var(--primary); }
+        .btn-remove-condition {
+            background: none; border: none; color: var(--on-surface-muted);
+            font-size: 18px; cursor: pointer; padding: 0 4px; flex: none; line-height: 1;
+        }
+        .btn-remove-condition:hover { color: var(--danger-text); }
+        .condition-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .condition-fields .full-width { grid-column: span 2; }
+        .condition-preview {
+            display: none; margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid var(--outline-variant);
+            overflow-x: auto;
+        }
+        .btn-add-condition {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 11px 16px; margin-bottom: 16px;
+            border: 2px dashed var(--outline-variant); border-radius: var(--radius-md);
+            background: none; color: var(--on-surface-variant);
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: var(--ease-fast);
+        }
+        .btn-add-condition:hover {
+            border-color: var(--primary); color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* ════════════════════════════════════════
            일탈 모달
         ════════════════════════════════════════ */
         #deviationViewModal,
@@ -1594,6 +1674,62 @@
             cursor: pointer;
             flex: none;
             box-shadow: 0 4px 14px rgba(225, 29, 72, 0.28);
+        }
+
+        /* 챔버 대시보드 카드 */
+        .chamber-card {
+            background: var(--surface-container-lowest);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-ambient);
+            cursor: pointer;
+            transition: var(--ease-base);
+            border: 2px solid transparent;
+        }
+        .chamber-card:hover {
+            box-shadow: var(--shadow-float);
+            transform: translateY(-2px);
+            border-color: var(--primary-muted);
+        }
+        .chamber-card-no {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--on-surface);
+            letter-spacing: var(--ls-tight);
+            margin-bottom: 8px;
+        }
+        .chamber-card-cond {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+        .chamber-card-stats {
+            display: flex;
+            gap: 8px;
+        }
+        .chamber-card-stat {
+            flex: 1;
+            background: var(--surface-container-low);
+            border-radius: var(--radius-sm);
+            padding: 8px 6px;
+            text-align: center;
+        }
+        .chamber-card-stat .stat-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--on-surface-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .chamber-card-stat .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--on-surface);
         }
 
         .btn-dev-query {
@@ -1808,7 +1944,7 @@
         <div class="login-box">
             <img src="img/logo1.png" alt="로고" style="width:300px; display:block; margin:0 auto 14px;">
             <h1>안정성시험 통합관리 시스템</h1>
-            <p class="version">v3.0</p>
+            <p class="version">v3.3</p>
             <div class="login-field">
                 <label>아이디</label>
                 <input type="text" id="loginId" placeholder="아이디를 입력하세요"
@@ -1881,7 +2017,7 @@
                     <button class="sidebar-action-btn" onclick="openChangePwModal()">🔑 비밀번호 변경</button>
                     <button class="sidebar-action-btn sidebar-logout-btn" onclick="handleLogout()">로그아웃</button>
                 </div>
-                <div class="sidebar-version">Stability Management System <br> Ver 3.0 </br> </div>
+                <div class="sidebar-version">Stability Management System <br> Ver 3.3 </br> </div>
             </div>
         </aside>
 
@@ -1971,107 +2107,153 @@
             <section id="section-chamber" class="content-section">
                 <div class="section-header">
                     <h2>안정성 챔버 관리</h2>
+                    <button class="btn-action-new leader-only" style="flex:none;"
+                            onclick="openChamberRegisterModal()">＋ 챔버 등록</button>
                 </div>
-                <div
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; align-items: start;">
-                    <!-- 일탈 내역 조회 패널 -->
-                    <div
-                        style="background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-ambient);">
-                        <h3 style="margin-top:0; color:var(--primary); font-size:16px;">📋 챔버별 일탈 내역 조회</h3>
-                        <div class="deviation-form-row">
-                            <div class="form-group" style="flex:1;">
-                                <label
-                                    style="font-size:12px; font-weight:700; color:#666; margin-bottom:5px; display:block;">🌡️
-                                    챔버 선택</label>
-                                <select id="devViewChamber"
-                                    style="padding:10px; border:1px solid var(--outline-variant); border-radius:6px; width:100%;">
-                                    <option value="">챔버를 선택하세요</option>
-                                </select>
-                            </div>
-                            <button class="btn-dev-query" onclick="loadDeviationViewTable()">조회</button>
-                        </div>
-                        <div style="overflow-x:auto;">
-                            <table id="devViewTable"
-                                style="margin-top: 10px; border:1px solid var(--outline-variant); width: 100%; border-collapse: collapse; font-size: 13px;">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            style="padding:10px; background:var(--surface-container-low); border-bottom:1px solid var(--outline-variant);">
-                                            No</th>
-                                        <th
-                                            style="padding:10px; background:var(--surface-container-low); border-bottom:1px solid var(--outline-variant);">
-                                            일탈 발생일</th>
-                                        <th
-                                            style="padding:10px; background:var(--surface-container-low); border-bottom:1px solid var(--outline-variant);">
-                                            연장 일수</th>
-                                        <th
-                                            style="padding:10px; background:var(--surface-container-low); border-bottom:1px solid var(--outline-variant); text-align:left;">
-                                            일탈 사유</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="4"
-                                            style="color:var(--on-surface-muted); padding:20px; text-align:center;">챔버를
-                                            선택 후 조회하세요.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- 일탈 내역 등록 패널 (리더 전용) -->
-                    <div class="leader-only"
-                        style="background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-ambient);">
-                        <h3
-                            style="margin-top:0; color:var(--danger-text); font-size:16px; display:flex; align-items:center; gap:8px;">
-                            ⚠️ 챔버 일탈 내역 일괄 연장 (리더 전용)
-                        </h3>
-                        <div class="deviation-form-row" style="margin-top: 18px;">
-                            <div class="form-group" style="flex:1;">
-                                <label
-                                    style="font-size:12px; font-weight:700; color:#c53030; margin-bottom:5px; display:block;">📅
-                                    일탈 발생일</label>
-                                <input type="date" id="devInputDate"
-                                    style="padding:10px; border:1px solid #feb2b2; border-radius:6px; width:100%; box-sizing:border-box;">
-                            </div>
-                            <div class="form-group" style="flex:1;">
-                                <label
-                                    style="font-size:12px; font-weight:700; color:#c53030; margin-bottom:5px; display:block;">🌡️
-                                    대상 챔버</label>
-                                <select id="devInputChamber"
-                                    style="padding:10px; border:1px solid #feb2b2; border-radius:6px; width:100%;">
-                                    <option value="">챔버 선택</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="deviation-form-row">
-                            <div class="form-group" style="flex:0.4; min-width:100px;">
-                                <label
-                                    style="font-size:12px; font-weight:700; color:#c53030; margin-bottom:5px; display:block;">연장
-                                    일수 (일)</label>
-                                <input type="number" id="devInputDays" placeholder="예: 15"
-                                    style="padding:10px; border:1px solid #feb2b2; border-radius:6px; width:100%; box-sizing:border-box;">
-                            </div>
-                            <div class="form-group" style="flex:1;">
-                                <label
-                                    style="font-size:12px; font-weight:700; color:#c53030; margin-bottom:5px; display:block;">일탈
-                                    사유 작성</label>
-                                <input type="text" id="devInputReason" placeholder="예: 정전 발생으로 인한 온도 이탈"
-                                    style="padding:10px; border:1px solid #feb2b2; border-radius:6px; width:100%; box-sizing:border-box;">
-                            </div>
-                        </div>
-                        <div style="background:var(--danger-bg); padding:14px; border-radius:8px; margin-bottom:16px;">
-                            <p style="font-size:12px; color:var(--danger-text); margin:0; line-height: 1.5;">선택한 챔버에 보관
-                                중인 <b>모든 진행중 배치의 일정</b>이 일괄 연장됩니다. (완료된 시점 제외)</p>
-                        </div>
-                        <button class="btn-dev-submit" style="width:100%;" onclick="applyDeviationFromSection()">일괄 연기
-                            실행하기</button>
+                <!-- 챔버 카드 대시보드 -->
+                <div id="chamberDashboard" style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                    gap: 16px;">
+                    <div style="padding:40px; text-align:center; color:var(--on-surface-muted);
+                                grid-column:1/-1; font-size:14px;">
+                        로딩 중...
                     </div>
                 </div>
             </section>
 
         </main>
+    </div>
+
+    <!-- 자동 로그아웃 경고 토스트 -->
+    <div id="autoLogoutToast">
+        <div class="toast-title">⏱ 자동 로그아웃 예정</div>
+        <div class="toast-body">장시간 활동이 없어 곧 자동 로그아웃됩니다.</div>
+        <div class="toast-countdown" id="toastCountdown">5:00</div>
+        <div class="toast-actions">
+            <button class="toast-btn-extend" onclick="extendSession()">연장하기</button>
+            <button class="toast-btn-logout" onclick="handleLogout()">지금 로그아웃</button>
+        </div>
+    </div>
+
+    <!-- 챔버 등록 모달 -->
+    <div id="chamberRegisterModal" style="display:none; position:fixed; inset:0; z-index:10004;
+        background:rgba(19,27,46,0.40); backdrop-filter:blur(8px);
+        align-items:center; justify-content:center;">
+        <div style="background:rgba(216,220,255,0.92); backdrop-filter:blur(24px);
+            border:1px solid rgba(255,255,255,0.60); border-radius:var(--radius-xl);
+            box-shadow:var(--shadow-float); padding:32px; width:360px; max-width:92vw;">
+            <h3 style="margin:0 0 20px; font-size:16px; font-weight:700; color:var(--on-surface);">🌡️ 새 챔버 등록</h3>
+            <div class="form-group">
+                <label>챔버 번호</label>
+                <input type="text" id="modalChamberNo" placeholder="예: IB12">
+            </div>
+            <div class="form-group" style="margin-top:14px;">
+                <label>시험 조건</label>
+                <select id="modalChamberCondition">
+                    <option value="장기">장기 (25°C ± 2°C / 60% RH ± 5% RH)</option>
+                    <option value="가속">가속 (40°C ± 2°C / 75% RH ± 5% RH)</option>
+                    <option value="중간">중간 (30°C ± 2°C / 65% RH ± 5% RH)</option>
+                    <option value="가혹">가혹 (60°C / 80% RH)</option>
+                    <option value="반투막 장기">반투막 장기 (25°C ± 2°C / 40% RH ± 5% RH)</option>
+                    <option value="반투막 가속">반투막 가속 (40°C ± 2°C / 25% RH 이하)</option>
+                </select>
+            </div>
+            <div class="btn-group" style="margin-top:24px;">
+                <button class="btn-save" onclick="saveChamberFromModal()">등록</button>
+                <button class="btn-cancel" onclick="closeChamberRegisterModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 챔버 상세 모달 -->
+    <div id="chamberDetailModal" style="display:none; position:fixed; inset:0; z-index:10004;
+        background:rgba(19,27,46,0.40); backdrop-filter:blur(8px);
+        align-items:center; justify-content:center; padding:20px;">
+        <div style="background:var(--surface-container-lowest); border-radius:var(--radius-xl);
+            box-shadow:var(--shadow-float); width:560px; max-width:95vw;
+            max-height:88vh; overflow-y:auto; position:relative;">
+            <!-- 헤더 -->
+            <div style="padding:24px 28px 16px; border-bottom:1px solid var(--outline-variant);
+                display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span id="chamberDetailNo" style="font-size:22px; font-weight:800; color:var(--on-surface);">—</span>
+                    <span id="chamberDetailCondBadge" style="padding:4px 12px; border-radius:var(--radius-full); font-size:12px; font-weight:700;">—</span>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button class="leader-only" onclick="deleteChamberFromDetail()"
+                        style="background:var(--danger-bg); color:var(--danger-text); border:none;
+                               border-radius:var(--radius-md); padding:7px 14px; font-size:12px;
+                               font-weight:600; cursor:pointer; flex:none;">🗑 챔버 삭제</button>
+                    <button onclick="closeChamberDetailModal()"
+                        style="background:none; border:none; font-size:22px; cursor:pointer;
+                               color:var(--on-surface-muted); flex:none; line-height:1;">✕</button>
+                </div>
+            </div>
+            <!-- 현재 상태 요약 -->
+            <div style="padding:20px 28px 12px; display:flex; gap:12px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:100px; background:var(--surface-container-low);
+                    border-radius:var(--radius-md); padding:14px 16px; text-align:center;">
+                    <div style="font-size:10px; font-weight:700; color:var(--on-surface-muted);
+                        text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">전체 배치</div>
+                    <div id="chamberStatTotal" style="font-size:24px; font-weight:800; color:var(--primary);">—</div>
+                </div>
+                <div style="flex:1; min-width:100px; background:var(--surface-container-low);
+                    border-radius:var(--radius-md); padding:14px 16px; text-align:center;">
+                    <div style="font-size:10px; font-weight:700; color:var(--on-surface-muted);
+                        text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">진행 중</div>
+                    <div id="chamberStatActive" style="font-size:24px; font-weight:800; color:var(--warning);">—</div>
+                </div>
+                <div style="flex:1; min-width:100px; background:var(--surface-container-low);
+                    border-radius:var(--radius-md); padding:14px 16px; text-align:center;">
+                    <div style="font-size:10px; font-weight:700; color:var(--on-surface-muted);
+                        text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">완료 배치</div>
+                    <div id="chamberStatCompleted" style="font-size:24px; font-weight:800; color:var(--success);">—</div>
+                </div>
+            </div>
+            <!-- 일탈 내역 테이블 -->
+            <div style="padding:4px 28px 16px;">
+                <div style="font-size:13px; font-weight:700; color:var(--on-surface); margin-bottom:10px;">📋 일탈 내역</div>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                        <thead>
+                            <tr style="background:var(--surface-container-low);">
+                                <th style="padding:8px 12px; color:var(--on-surface-variant); font-weight:600; text-align:center;">No</th>
+                                <th style="padding:8px 12px; color:var(--on-surface-variant); font-weight:600; text-align:center;">일탈 발생일</th>
+                                <th style="padding:8px 12px; color:var(--on-surface-variant); font-weight:600; text-align:center;">연장 일수</th>
+                                <th style="padding:8px 12px; color:var(--on-surface-variant); font-weight:600; text-align:left;">사유</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chamberDetailDeviationBody">
+                            <tr><td colspan="4" style="padding:20px; text-align:center; color:var(--on-surface-muted);">일탈 내역 없음</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 일탈 등록 폼 (리더 전용) -->
+            <div class="leader-only" style="padding:16px 28px 28px; border-top:1px solid var(--outline-variant);">
+                <div style="font-size:13px; font-weight:700; color:var(--danger-text); margin-bottom:14px;">⚠️ 일탈 내역 등록 (리더 전용)</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group" style="margin:0;">
+                        <label>일탈 발생일</label>
+                        <input type="date" id="chamberDetailDevDate">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>연장 일수 (일)</label>
+                        <input type="number" id="chamberDetailDevDays" placeholder="예: 15">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>일탈 사유</label>
+                    <input type="text" id="chamberDetailDevReason" placeholder="예: 정전 발생으로 인한 온도 이탈">
+                </div>
+                <div style="background:var(--danger-bg); padding:10px 14px; border-radius:var(--radius-md); margin-bottom:14px;">
+                    <p style="font-size:12px; color:var(--danger-text); margin:0; line-height:1.5;">
+                        이 챔버의 <b>모든 진행 중 배치</b>에 일괄 적용됩니다.</p>
+                </div>
+                <button class="btn-dev-submit" style="width:100%;" onclick="submitChamberDeviation()">일괄 연장 실행</button>
+            </div>
+        </div>
     </div>
 
     <!-- 결과/상세 모달 (body 직속) -->
@@ -2105,71 +2287,48 @@
     <!-- ════════════════════════════════════════
      신규 등록 / 수정 모달
 ════════════════════════════════════════ -->
-    <div id="registerModal" onclick="if(this===event.target)closeRegisterModal()">
+    <div id="registerModal">
         <div class="register-modal-content">
             <div class="register-modal-header">
                 <h3 id="registerModalTitle">＋ 신규 안정성 시험 등록</h3>
                 <button class="close-result-btn" onclick="closeRegisterModal()">닫기 ✕</button>
             </div>
-            <div class="grid-form">
-                <div class="form-group"><label>시험 번호</label><input type="text" id="testNo" placeholder="예: 17ND01ST01">
+
+            <!-- 공통 정보 (모든 시험 조건에 동일 적용) -->
+            <div class="common-fields">
+                <span class="common-fields-label">공통 정보 — 모든 시험 조건에 동일 적용</span>
+                <div class="form-group">
+                    <label>시험 번호</label>
+                    <input type="text" id="testNo" placeholder="예: 17ND01ST01">
                 </div>
                 <div class="form-group">
-                    <label>시험 조건</label>
-                    <select id="category">
-                        <option value="장기">장기 (25°C ± 2°C / 60%RH ± 5%RH)</option>
-                        <option value="가속">가속 (40°C ± 2°C / 75%RH ± 5%RH)</option>
-                        <option value="중간">중간 (30°C ± 2°C / 65%RH ± 5%RH)</option>
-                        <option value="가혹">가혹 (60°C ± 2°C / 80%RH ± 5%RH)</option>
-                    </select>
+                    <label>제품명</label>
+                    <input type="text" id="productName" placeholder="예: IN-115314정">
                 </div>
-                <div class="form-group"><label>제품명</label><input type="text" id="productName"
-                        placeholder="예: IN-115314정"></div>
-                <div class="form-group"><label>배치 번호</label><input type="text" id="batchNo"
-                        placeholder="예: 17ND01AST01-A"></div>
-                <div class="form-group"><label>챔버 번호</label><input type="text" id="chamberNo" placeholder="예: IB12">
-                </div>
-                <div class="form-group"><label>시작일</label><input type="date" id="startDate"></div>
                 <div class="form-group">
-                    <label>단위</label>
-                    <select id="unit">
-                        <option value="month">개월(Month)</option>
-                        <option value="week">주(Week)</option>
-                    </select>
+                    <label>배치 번호</label>
+                    <input type="text" id="batchNo" placeholder="예: 17ND01AST01-A">
                 </div>
                 <div class="form-group">
                     <label>담당자</label>
                     <input type="text" id="assignee" list="assigneeList" placeholder="담당자 이름">
                     <datalist id="assigneeList"></datalist>
                 </div>
-                <div class="form-group full-width"><label>시험 시점 (쉼표 구분)</label><input type="text" id="intervals"
-                        placeholder="예: 0, 3, 6, 12, 18, 24"></div>
             </div>
+
+            <!-- 시험 조건 카드 목록 (동적) -->
+            <div id="conditionList"></div>
+
+            <!-- 조건 추가 버튼 -->
+            <button class="btn-add-condition" id="btnAddCondition" onclick="addConditionCard()">
+                ＋ 시험 조건 추가 (예: 장기 + 가속 동시 등록)
+            </button>
+
+            <!-- 저장/취소 버튼 -->
             <div class="btn-group">
-                <button class="btn-calc" onclick="calculate()">🔍 1. 일정 확인</button>
-                <button class="btn-save" id="mainActionBtn" onclick="handleMainAction()">💾 2. DB에 신규 등록하기</button>
+                <button class="btn-save" id="mainActionBtn" onclick="handleMainAction()">💾 전체 등록하기</button>
                 <button id="cancelEditBtn" style="display:none; background:#999; color:white; flex:0.3;"
                     onclick="closeRegisterModal()">취소</button>
-            </div>
-            <!-- 일정 미리보기 (신규 등록 시 인라인 표시) -->
-            <div id="registerPreview"
-                style="display:none; margin-top:22px; border-top:2px solid var(--primary-light); padding-top:18px;">
-                <h4 id="registerPreviewTitle" style="margin:0 0 12px; color:var(--primary); font-size:15px;"></h4>
-                <div style="overflow-x:auto;">
-                    <table style="width:100%; border-collapse:collapse; font-size:13px;">
-                        <thead>
-                            <tr style="background:var(--surface-container-low);">
-                                <th
-                                    style="padding:8px 10px; border:1px solid var(--outline-variant); text-align:center;">
-                                    안정성 시점</th>
-                                <th
-                                    style="padding:8px 10px; border:1px solid var(--outline-variant); text-align:center;">
-                                    예정일</th>
-                            </tr>
-                        </thead>
-                        <tbody id="registerPreviewBody"></tbody>
-                    </table>
-                </div>
             </div>
         </div>
     </div>
@@ -2441,6 +2600,8 @@
         let dashActivePanelType = null;
         let calendar;
         let allHistoryData = [];
+        let allChambers = [];          // { id, chamber_no, condition } 배열 — chambers 테이블에서 로드
+        let currentChamberDetail = null; // 현재 열린 챔버 상세 { id, chamber_no, condition }
         let currentViewItem = null;
         let currentModalV = null;   // eventModal에서 완료 처리 시 사용할 v 값
         let currentUser = null;  // { id, email, name, role }
@@ -2452,6 +2613,86 @@
             'complete': '시점 완료 처리',
             'deviation': '챔버 일탈 처리'
         };
+
+        // ── 자동 로그아웃 ─────────────────────────────────────────────
+        const AUTO_LOGOUT_MINUTES = 30;  // 비활성 후 로그아웃까지 총 시간 (분)
+        const WARN_BEFORE_MINUTES  = 5;  // 로그아웃 N분 전에 경고 표시
+        let _idleTimer   = null;  // 전체 비활성 타이머
+        let _warnTimer   = null;  // 경고 표시 타이머
+        let _countdownInterval = null;  // 카운트다운 갱신 인터벌
+        let _warnShownAt = null;  // 경고가 표시된 시각 (Date)
+
+        function resetIdleTimer() {
+            if (!currentUser) return;  // 비로그인 상태에서는 동작하지 않음
+
+            // 기존 타이머 초기화
+            clearTimeout(_idleTimer);
+            clearTimeout(_warnTimer);
+            hideLogoutWarning();
+
+            const totalMs = AUTO_LOGOUT_MINUTES * 60 * 1000;
+            const warnMs  = (AUTO_LOGOUT_MINUTES - WARN_BEFORE_MINUTES) * 60 * 1000;
+
+            // 경고 타이머: N분 후 경고 토스트 표시
+            _warnTimer = setTimeout(function() {
+                showLogoutWarning();
+            }, warnMs);
+
+            // 로그아웃 타이머: 총 시간 후 자동 로그아웃
+            _idleTimer = setTimeout(function() {
+                hideLogoutWarning();
+                handleLogout();
+            }, totalMs);
+        }
+
+        function showLogoutWarning() {
+            _warnShownAt = new Date();
+            const toast = document.getElementById('autoLogoutToast');
+            if (toast) toast.classList.add('visible');
+
+            // 카운트다운 갱신 (1초마다)
+            clearInterval(_countdownInterval);
+            _countdownInterval = setInterval(function() {
+                const elapsed = Math.floor((new Date() - _warnShownAt) / 1000);
+                const remaining = WARN_BEFORE_MINUTES * 60 - elapsed;
+                if (remaining <= 0) { clearInterval(_countdownInterval); return; }
+                const m = Math.floor(remaining / 60);
+                const s = remaining % 60;
+                const el = document.getElementById('toastCountdown');
+                if (el) el.innerText = m + ':' + (s < 10 ? '0' : '') + s;
+            }, 1000);
+
+            // 초기값 즉시 표시
+            const el = document.getElementById('toastCountdown');
+            if (el) el.innerText = WARN_BEFORE_MINUTES + ':00';
+        }
+
+        function hideLogoutWarning() {
+            clearInterval(_countdownInterval);
+            _warnShownAt = null;
+            const toast = document.getElementById('autoLogoutToast');
+            if (toast) toast.classList.remove('visible');
+        }
+
+        function extendSession() {
+            resetIdleTimer();  // 타이머 전체 리셋 = 세션 연장
+        }
+
+        function startIdleWatcher() {
+            ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function(evt) {
+                document.addEventListener(evt, resetIdleTimer, { passive: true });
+            });
+            resetIdleTimer();
+        }
+
+        function stopIdleWatcher() {
+            clearTimeout(_idleTimer);
+            clearTimeout(_warnTimer);
+            hideLogoutWarning();
+            ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function(evt) {
+                document.removeEventListener(evt, resetIdleTimer);
+            });
+        }
 
         // ── 앱 초기화 ──────────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', async function () {
@@ -2690,11 +2931,14 @@
             // 담당자 자동 입력
             document.getElementById('assignee').value = currentUser.name;
 
+            await loadChambers();
             loadHistory();
             calendar.refetchEvents();
+            startIdleWatcher();  // 자동 로그아웃 감시 시작
         }
 
         async function handleLogout() {
+            stopIdleWatcher();  // 자동 로그아웃 감시 중단
             await _supabase.auth.signOut();
             resetForm();  // 재로그인 시 폼 잔류 방지 (currentUser 초기화 전에 호출)
             currentUser = null;
@@ -2702,6 +2946,8 @@
             currentViewItem = null;
             currentModalV = null;
             allHistoryData = [];
+            allChambers = [];
+            currentChamberDetail = null;
             // 대시보드 상태 초기화 (재로그인 시 이전 사용자 데이터 잔류 방지)
             dashTodayItems = []; dashWeekItems = []; dashOverdueItems = [];
             dashActivePanelType = null;
@@ -2743,7 +2989,7 @@
             document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.section === name));
 
             if (name === 'status' && calendar) setTimeout(() => calendar.updateSize(), 50);
-            if (name === 'chamber') initChamberSection();
+            if (name === 'chamber') { renderChamberDashboard(); }
 
             if (window.innerWidth <= 768) {
                 const sidebar = document.getElementById('sidebar');
@@ -3095,19 +3341,27 @@
 
         // ── CRUD ─────────────────────────────────────────────────────
         async function saveToDB() {
-            const data = getFormData();
-            if (!data.test_no) return alert('시험 번호를 입력하세요.');
-            if (!data.start_date) return alert('시작일을 입력하세요.');
-            data.deviation_history = await syncDeviationHistory(data.chamber_no, data.start_date);
-            data.completed_points = [];
-            const { data: inserted, error } = await _supabase.from('stability_tests').insert([data]).select().single();
-            if (error) return alert('저장 오류: ' + error.message);
-            await logActivity('create', inserted.id, inserted.test_no, {
-                category: data.category, product_name: data.product_name, batch_no: data.batch_no
-            });
-            alert('신규 등록이 완료되었습니다.');
+            const common = getCommonFields();
+            if (!common.test_no) return alert('시험 번호를 입력하세요.');
+            if (!common.product_name) return alert('제품명을 입력하세요.');
+            const conditions = getConditions();
+            if (conditions.some(function(c) { return !c.start_date; }))
+                return alert('모든 시험 조건의 시작일을 입력하세요.');
+            if (conditions.some(function(c) { return !c.intervals; }))
+                return alert('모든 시험 조건의 시험 시점을 입력하세요.');
+
+            for (const cond of conditions) {
+                const data = Object.assign({}, common, cond);
+                data.deviation_history = await syncDeviationHistory(cond.chamber_no, cond.start_date);
+                data.completed_points = [];
+                const { data: inserted, error } = await _supabase.from('stability_tests').insert([data]).select().single();
+                if (error) return alert('저장 오류: ' + error.message);
+                await logActivity('create', inserted.id, inserted.test_no, {
+                    category: cond.category, product_name: common.product_name, batch_no: common.batch_no
+                });
+            }
+            alert(conditions.length + '개 시험 조건이 등록되었습니다.');
             closeRegisterModal();
-            closeResultArea();
             refreshAll();
         }
         async function handleMainAction() { editModeId ? updateData() : saveToDB(); }
@@ -3172,7 +3426,7 @@
 
         // ── 등록/수정 모달 ───────────────────────────────────────────
         function openRegisterModal() {
-            document.getElementById('registerModalTitle').innerText = '＋ 신규 안정성 시험 등록';
+            resetForm(); // 공통 필드 초기화 + 장기 카드 1개 생성
             document.getElementById('registerModal').style.display = 'block';
         }
         function closeRegisterModal() {
@@ -3182,84 +3436,163 @@
 
         // ── 안정성 챔버 관리 화면 ─────────────────────────────────────
         function initChamberSection() {
-            if (!allHistoryData) return;
-            const chambers = [...new Set(allHistoryData.map(i => i.chamber_no).filter(Boolean))].sort();
-
-            // 1. 조회부 초기화
-            document.getElementById('devViewChamber').innerHTML =
-                '<option value="">챔버를 선택하세요</option>' + chambers.map(c => '<option>' + esc(c) + '</option>').join('');
-            document.querySelector('#devViewTable tbody').innerHTML =
-                '<tr><td colspan="4" style="color:var(--on-surface-muted); padding:20px; text-align:center;">챔버를 선택 후 조회하세요.</td></tr>';
-
-            // 2. 등록부 초기화 (리더 전용)
-            if (currentUser && currentUser.role === 'leader') {
-                document.getElementById('devInputChamber').innerHTML =
-                    '<option value="">챔버 선택</option>' + chambers.map(c => '<option>' + esc(c) + '</option>').join('');
-                document.getElementById('devInputDate').value = formatLocalDate(new Date());
-                document.getElementById('devInputDays').value = '';
-                document.getElementById('devInputReason').value = '';
-            }
+            renderChamberDashboard();
         }
 
-        async function loadDeviationViewTable() {
-            const chamber = document.getElementById('devViewChamber').value;
-            if (!chamber) return alert('조회할 챔버를 선택해주세요.');
-            const { data } = await _supabase.from('stability_tests').select('deviation_history')
-                .eq('chamber_no', chamber).not('deviation_history', 'is', null);
+        // ── 챔버 상세 모달 ────────────────────────────────────────────
+        async function openChamberDetail(chamberId) {
+            const ch = allChambers.find(function(c) { return c.id === chamberId; });
+            if (!ch) return;
+            currentChamberDetail = ch;
+
+            // 헤더
+            document.getElementById('chamberDetailNo').innerText = ch.chamber_no;
+            const badge = document.getElementById('chamberDetailCondBadge');
+            const condDesc = COND_CONDITION_DESC[ch.condition] || '';
+            badge.innerHTML = esc(ch.condition) + (condDesc ? '<br><span style="font-size:10px; font-weight:500; opacity:0.85;">' + esc(condDesc) + '</span>' : '');
+            badge.style.cssText = 'padding:6px 12px; border-radius:var(--radius-md); font-size:12px; font-weight:700; line-height:1.5; ' + (COND_BADGE_STYLE[ch.condition] || '');
+
+            // 배치 통계
+            const batches = allHistoryData.filter(function(i) { return i.chamber_no === ch.chamber_no; });
+            const total = batches.length;
+            const completed = batches.filter(function(i) {
+                const pts = (i.intervals || '').split(',').filter(Boolean).length;
+                const done = (i.completed_points || []).length;
+                return pts > 0 && done >= pts;
+            }).length;
+            document.getElementById('chamberStatTotal').innerText = total;
+            document.getElementById('chamberStatActive').innerText = total - completed;
+            document.getElementById('chamberStatCompleted').innerText = completed;
+
+            // 일탈 내역 로드
+            await loadChamberDeviationHistory(ch.chamber_no);
+
+            // 일탈 등록 폼 초기화
+            document.getElementById('chamberDetailDevDate').value = formatLocalDate(new Date());
+            document.getElementById('chamberDetailDevDays').value = '';
+            document.getElementById('chamberDetailDevReason').value = '';
+
+            // 역할별 UI 적용
+            applyRoleUI();
+            document.getElementById('chamberDetailModal').style.display = 'flex';
+        }
+
+        function closeChamberDetailModal() {
+            document.getElementById('chamberDetailModal').style.display = 'none';
+            currentChamberDetail = null;
+        }
+
+        async function loadChamberDeviationHistory(chamberNo) {
+            const tbody = document.getElementById('chamberDetailDeviationBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="padding:16px; text-align:center; color:var(--on-surface-muted);">로딩 중...</td></tr>';
+            const { data } = await _supabase.from('stability_tests')
+                .select('deviation_history')
+                .eq('chamber_no', chamberNo)
+                .not('deviation_history', 'is', null);
             let combined = [];
-            (data || []).forEach(d => { if (d.deviation_history) combined = combined.concat(d.deviation_history); });
+            (data || []).forEach(function(d) { if (d.deviation_history) combined = combined.concat(d.deviation_history); });
             const uniqueHistory = combined
-                .filter((v, i, a) => a.findIndex(t => t.date === v.date && t.days === v.days) === i)
-                .sort((a, b) => parseLocalDate(a.date) - parseLocalDate(b.date));
-            document.querySelector('#devViewTable tbody').innerHTML = uniqueHistory.length
-                ? uniqueHistory.map((h, i) =>
-                    '<tr><td style="text-align:center;">' + (i + 1) + '</td><td style="text-align:center;">' + esc(h.date) + '</td>' +
-                    '<td style="color:var(--danger-text);font-weight:bold;text-align:center;">+' + parseInt(h.days) + '일</td>' +
-                    '<td style="text-align:left;">' + esc(h.reason || '사유 미입력') + '</td></tr>').join('')
-                : '<tr><td colspan="4" style="color:var(--on-surface-muted); padding:20px; text-align:center;">' + chamber + ' 챔버 일탈 내역 없음</td></tr>';
+                .filter(function(v, i, a) { return a.findIndex(function(t) { return t.date === v.date && t.days === v.days; }) === i; })
+                .sort(function(a, b) { return parseLocalDate(a.date) - parseLocalDate(b.date); });
+            tbody.innerHTML = uniqueHistory.length
+                ? uniqueHistory.map(function(h, i) {
+                    return '<tr>' +
+                        '<td style="padding:8px 12px; text-align:center;">' + (i + 1) + '</td>' +
+                        '<td style="padding:8px 12px; text-align:center;">' + esc(h.date) + '</td>' +
+                        '<td style="padding:8px 12px; text-align:center; color:var(--danger-text); font-weight:700;">+' + parseInt(h.days) + '일</td>' +
+                        '<td style="padding:8px 12px; text-align:left;">' + esc(h.reason || '사유 미입력') + '</td>' +
+                    '</tr>';
+                }).join('')
+                : '<tr><td colspan="4" style="padding:20px; text-align:center; color:var(--on-surface-muted);">일탈 내역 없음</td></tr>';
         }
 
-        async function applyDeviationFromSection() {
-            const baseDate = document.getElementById('devInputDate').value;
-            const chamber = document.getElementById('devInputChamber').value;
-            const days = document.getElementById('devInputDays').value;
-            const reason = document.getElementById('devInputReason').value || '사유 미입력';
-            if (!baseDate || !chamber || !days) return alert('발생일, 챔버, 연장 일수는 필수 입력 항목입니다.');
-            if (!confirm('[' + chamber + '] 챔버의 모든 배치에 ' + days + '일 연장을 적용합니다.\n계속하시겠습니까?')) return;
+        async function submitChamberDeviation() {
+            if (!currentChamberDetail) return;
+            const chamber = currentChamberDetail.chamber_no;
+            const baseDate = document.getElementById('chamberDetailDevDate').value;
+            const days = document.getElementById('chamberDetailDevDays').value;
+            const reason = document.getElementById('chamberDetailDevReason').value || '사유 미입력';
+            if (!baseDate || !days) return alert('일탈 발생일과 연장 일수는 필수입니다.');
+            if (!confirm('[' + chamber + '] 챔버의 모든 진행 중 배치에 ' + days + '일 연장을 적용합니다.\n계속하시겠습니까?')) return;
             try {
-                for (const item of allHistoryData.filter(i => i.chamber_no === chamber)) {
+                for (const item of allHistoryData.filter(function(i) { return i.chamber_no === chamber; })) {
                     const history = item.deviation_history || [];
-                    history.push({ date: baseDate, days: parseInt(days), reason });
+                    history.push({ date: baseDate, days: parseInt(days), reason: reason });
                     const { error } = await _supabase.from('stability_tests')
                         .update({ deviation_history: history }).eq('id', item.id);
                     if (error) throw new Error('[' + item.test_no + '] 업데이트 오류: ' + error.message);
                 }
             } catch (e) {
-                return alert('일탈 적용 중 오류가 발생했습니다:\n' + e.message);
+                return alert('일탈 적용 중 오류:\n' + e.message);
             }
             await logActivity('deviation', null, null, { chamber, days: parseInt(days), reason });
-            alert('일괄 연기 완료');
+            alert('일괄 연장 완료');
+            await loadChamberDeviationHistory(chamber);
+            document.getElementById('chamberDetailDevDays').value = '';
+            document.getElementById('chamberDetailDevReason').value = '';
             refreshAll();
-            initChamberSection(); // 적용 후 화면 즉시 초기화
+            renderChamberDashboard();
+        }
+
+        async function deleteChamberFromDetail() {
+            if (!currentChamberDetail || !currentUser || currentUser.role !== 'leader') return;
+            if (!confirm('[' + currentChamberDetail.chamber_no + '] 챔버를 삭제하시겠습니까?\n기존 안정성 시험 데이터에는 영향 없음')) return;
+            const { error } = await _supabase.from('chambers').delete().eq('id', currentChamberDetail.id);
+            if (error) return alert('삭제 오류: ' + error.message);
+            allChambers = allChambers.filter(function(c) { return c.id !== currentChamberDetail.id; });
+            closeChamberDetailModal();
+            renderChamberDashboard();
+        }
+
+        // ── 챔버 등록 모달 ────────────────────────────────────────────
+        function openChamberRegisterModal() {
+            if (!currentUser || currentUser.role !== 'leader') return alert('챔버 등록은 리더만 가능합니다.');
+            document.getElementById('modalChamberNo').value = '';
+            document.getElementById('modalChamberCondition').value = '장기';
+            document.getElementById('chamberRegisterModal').style.display = 'flex';
+        }
+
+        function closeChamberRegisterModal() {
+            document.getElementById('chamberRegisterModal').style.display = 'none';
+        }
+
+        async function saveChamberFromModal() {
+            const no = document.getElementById('modalChamberNo').value.trim();
+            const cond = document.getElementById('modalChamberCondition').value;
+            if (!no) return alert('챔버 번호를 입력하세요.');
+            const { data, error } = await _supabase.from('chambers')
+                .insert([{ chamber_no: no, condition: cond }]).select().single();
+            if (error) return alert('챔버 등록 오류: ' + error.message);
+            allChambers.push(data);
+            allChambers.sort(function(a, b) {
+                return a.condition.localeCompare(b.condition) || a.chamber_no.localeCompare(b.chamber_no);
+            });
+            closeChamberRegisterModal();
+            renderChamberDashboard();
         }
 
         // ── 이력 테이블 ──────────────────────────────────────────────
         function refreshAll() { loadHistory(); calendar.refetchEvents(); }
         function resetForm() {
             editModeId = null;
-            document.querySelectorAll('.grid-form input').forEach(i => i.value = '');
-            document.getElementById('category').value = '장기';
-            document.getElementById('unit').value = 'month';
+            // 공통 필드 초기화
+            ['testNo', 'productName', 'batchNo'].forEach(function(id) {
+                document.getElementById(id).value = '';
+            });
             if (currentUser) {
                 document.getElementById('assignee').value = currentUser.name;
                 document.getElementById('assignee').readOnly = currentUser.role !== 'leader';
             }
-            document.getElementById('mainActionBtn').innerText = '💾 2. DB에 신규 등록하기';
+            // 조건 카드 초기화 (장기 카드 1개)
+            conditionIndex = 0;
+            document.getElementById('conditionList').innerHTML = '';
+            addConditionCard();
+            // 버튼 초기화
+            document.getElementById('mainActionBtn').innerText = '💾 전체 등록하기';
             document.getElementById('mainActionBtn').className = 'btn-save';
             document.getElementById('cancelEditBtn').style.display = 'none';
-            // 미리보기 초기화
-            document.getElementById('registerPreview').style.display = 'none';
-            document.getElementById('registerPreviewBody').innerHTML = '';
+            document.getElementById('btnAddCondition').style.display = '';
+            document.getElementById('registerModalTitle').innerText = '＋ 신규 안정성 시험 등록';
         }
 
         async function loadHistory() {
@@ -3412,18 +3745,26 @@
                 return alert('본인이 담당하지 않은 배치는 수정할 수 없습니다.');
             }
             editModeId = item.id;
+            // 공통 필드
             document.getElementById('testNo').value = item.test_no;
-            document.getElementById('category').value = item.category;
             document.getElementById('productName').value = item.product_name;
             document.getElementById('batchNo').value = item.batch_no;
-            document.getElementById('startDate').value = item.start_date;
-            document.getElementById('unit').value = item.unit;
-            document.getElementById('intervals').value = item.intervals;
-            document.getElementById('chamberNo').value = item.chamber_no || '';
             document.getElementById('assignee').value = item.assignee || '';
+            // 조건 카드 1개로 초기화 (수정 시 단일 조건만)
+            conditionIndex = 0;
+            document.getElementById('conditionList').innerHTML = '';
+            addConditionCard({
+                category: item.category,
+                chamber_no: item.chamber_no,
+                start_date: item.start_date,
+                unit: item.unit,
+                intervals: item.intervals
+            });
+            // 수정 모드 UI
             document.getElementById('mainActionBtn').innerText = '💾 정보 수정 완료하기';
             document.getElementById('mainActionBtn').className = 'btn-update';
             document.getElementById('cancelEditBtn').style.display = 'block';
+            document.getElementById('btnAddCondition').style.display = 'none'; // 수정 시 조건 추가 숨김
             document.getElementById('registerModalTitle').innerText = '✏️ 시험 정보 수정';
             document.getElementById('registerModal').style.display = 'block';
         }
@@ -3588,18 +3929,290 @@
         }
 
         // ── 유틸리티 ─────────────────────────────────────────────────
-        function getFormData() {
+        // ── 다중 시험조건 등록 ────────────────────────────────────────
+        // ── 챔버 관리 ─────────────────────────────────────────────────
+        async function loadChambers() {
+            const { data, error } = await _supabase
+                .from('chambers').select('id, chamber_no, condition')
+                .order('condition').order('chamber_no');
+            if (!error) allChambers = data || [];
+        }
+
+        function buildChamberOptions(condition, selectedValue) {
+            const filtered = allChambers.filter(function(c) { return c.condition === condition; });
+            const opts = filtered.map(function(c) {
+                return '<option value="' + esc(c.chamber_no) + '"' +
+                    (c.chamber_no === selectedValue ? ' selected' : '') + '>' + esc(c.chamber_no) + '</option>';
+            }).join('');
+            return opts + '<option value="__add__">＋ 새 챔버 등록...</option>';
+        }
+
+        function onChamberSelectChange(select, idx) {
+            const addPanel = document.getElementById('card-chamberAdd-' + idx);
+            if (select.value === '__add__') {
+                addPanel.style.display = 'block';
+                select.value = '';
+            } else {
+                addPanel.style.display = 'none';
+            }
+        }
+
+        async function registerAndSelectChamber(idx) {
+            if (!currentUser || currentUser.role !== 'leader') return alert('챔버 등록은 리더만 가능합니다.');
+            const newNo = document.getElementById('card-chamberNoInput-' + idx).value.trim();
+            if (!newNo) return alert('챔버 번호를 입력하세요.');
+            const condition = document.getElementById('card-category-' + idx).value;
+            const { data, error } = await _supabase.from('chambers')
+                .insert([{ chamber_no: newNo, condition: condition }]).select().single();
+            if (error) return alert('챔버 등록 오류: ' + error.message);
+            allChambers.push(data);
+            allChambers.sort(function(a, b) {
+                return a.condition.localeCompare(b.condition) || a.chamber_no.localeCompare(b.chamber_no);
+            });
+            const sel = document.getElementById('card-chamberNo-' + idx);
+            sel.innerHTML = buildChamberOptions(condition, newNo);
+            sel.value = newNo;
+            document.getElementById('card-chamberAdd-' + idx).style.display = 'none';
+            document.getElementById('card-chamberNoInput-' + idx).value = '';
+        }
+
+        function cancelChamberAdd(idx) {
+            document.getElementById('card-chamberAdd-' + idx).style.display = 'none';
+            document.getElementById('card-chamberNoInput-' + idx).value = '';
+        }
+
+        const COND_BADGE_STYLE = {
+            '장기':     'color:var(--primary);background:var(--primary-light)',
+            '가속':     'color:var(--warning);background:var(--warning-bg)',
+            '중간':     'color:var(--success);background:var(--success-bg)',
+            '가혹':     'color:var(--danger-text);background:var(--danger-bg)',
+            '반투막 장기': 'color:#6D28D9;background:#EDE9FE',
+            '반투막 가속': 'color:#B45309;background:#FEF3C7'
+        };
+
+        // 각 조건의 온/습도 표시 문구
+        const COND_CONDITION_DESC = {
+            '장기':       '25°C ± 2°C / 60% RH ± 5% RH',
+            '가속':       '40°C ± 2°C / 75% RH ± 5% RH',
+            '중간':       '30°C ± 2°C / 65% RH ± 5% RH',
+            '가혹':       '60°C / 80% RH',
+            '반투막 장기': '25°C ± 2°C / 40% RH ± 5% RH',
+            '반투막 가속': '40°C ± 2°C / 25% RH 이하'
+        };
+
+        function renderChamberDashboard() {
+            const wrap = document.getElementById('chamberDashboard');
+            if (!wrap) return;
+            if (!allChambers.length) {
+                wrap.innerHTML = '<div style="padding:40px; text-align:center; color:var(--on-surface-muted); grid-column:1/-1; font-size:14px;">' +
+                    '등록된 챔버가 없습니다.<br>' +
+                    (currentUser && currentUser.role === 'leader'
+                        ? '상단 "＋ 챔버 등록" 버튼으로 챔버를 추가하세요.'
+                        : '리더에게 챔버 등록을 요청하세요.') +
+                    '</div>';
+                return;
+            }
+            wrap.innerHTML = allChambers.map(function(c) {
+                const batches = allHistoryData.filter(function(i) { return i.chamber_no === c.chamber_no; });
+                const total = batches.length;
+                const completed = batches.filter(function(i) {
+                    const pts = (i.intervals || '').split(',').filter(Boolean).length;
+                    const done = (i.completed_points || []).length;
+                    return pts > 0 && done >= pts;
+                }).length;
+                const active = total - completed;
+                const badge = COND_BADGE_STYLE[c.condition] || '';
+                const condDesc = COND_CONDITION_DESC[c.condition] || '';
+                return '<div class="chamber-card" onclick="openChamberDetail(\'' + c.id + '\')">' +
+                    '<div class="chamber-card-no">' + esc(c.chamber_no) + '</div>' +
+                    '<span class="chamber-card-cond" style="' + badge + '">' + esc(c.condition) + '</span>' +
+                    (condDesc ? '<div style="font-size:11px; color:var(--on-surface-muted); margin-bottom:12px; line-height:1.4;">' + esc(condDesc) + '</div>' : '') +
+                    '<div class="chamber-card-stats">' +
+                        '<div class="chamber-card-stat">' +
+                            '<span class="stat-label">전체</span>' +
+                            '<span class="stat-value">' + total + '</span>' +
+                        '</div>' +
+                        '<div class="chamber-card-stat">' +
+                            '<span class="stat-label">진행</span>' +
+                            '<span class="stat-value" style="color:var(--warning);">' + active + '</span>' +
+                        '</div>' +
+                        '<div class="chamber-card-stat">' +
+                            '<span class="stat-label">완료</span>' +
+                            '<span class="stat-value" style="color:var(--success);">' + completed + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        const ICH_DEFAULTS = {
+            '장기':       { unit: 'month', intervals: '0,3,6,9,12,18,24,36' },
+            '가속':       { unit: 'month', intervals: '0,1,3,6' },
+            '중간':       { unit: 'month', intervals: '0,6,12' },
+            '가혹':       { unit: 'month', intervals: '0,1,3' },
+            '반투막 장기': { unit: 'month', intervals: '0,3,6,9,12,18,24,36' },
+            '반투막 가속': { unit: 'month', intervals: '0,1,3,6' }
+        };
+        let conditionIndex = 0;
+
+        function addConditionCard(defaults = {}) {
+            const idx = conditionIndex++;
+            const cat = defaults.category || '장기';
+            const ich = ICH_DEFAULTS[cat] || ICH_DEFAULTS['장기'];
+            const unit = defaults.unit || ich.unit;
+            const intervals = defaults.intervals || ich.intervals;
+            const startDate = defaults.start_date || '';
+            const chamberNo = defaults.chamber_no || '';
+            const cardNum = document.querySelectorAll('.condition-card').length + 1;
+
+            const card = document.createElement('div');
+            card.className = 'condition-card';
+            card.dataset.idx = idx;
+            card.innerHTML =
+                '<div class="condition-card-header">' +
+                    '<span class="condition-card-title">시험 조건 ' + cardNum + '</span>' +
+                    '<button class="btn-remove-condition" onclick="removeConditionCard(this)" title="이 조건 삭제">✕</button>' +
+                '</div>' +
+                '<div class="condition-fields">' +
+                    '<div class="form-group"><label>시험 조건</label>' +
+                        '<select id="card-category-' + idx + '" onchange="onCardCategoryChange(this)">' +
+                            '<option value="장기"'       + (cat==='장기'?       ' selected':'') + '>장기 (25°C ± 2°C / 60% RH ± 5% RH)</option>' +
+                            '<option value="가속"'       + (cat==='가속'?       ' selected':'') + '>가속 (40°C ± 2°C / 75% RH ± 5% RH)</option>' +
+                            '<option value="중간"'       + (cat==='중간'?       ' selected':'') + '>중간 (30°C ± 2°C / 65% RH ± 5% RH)</option>' +
+                            '<option value="가혹"'       + (cat==='가혹'?       ' selected':'') + '>가혹 (60°C / 80% RH)</option>' +
+                            '<option value="반투막 장기"' + (cat==='반투막 장기'?' selected':'') + '>반투막 장기 (25°C ± 2°C / 40% RH ± 5% RH)</option>' +
+                            '<option value="반투막 가속"' + (cat==='반투막 가속'?' selected':'') + '>반투막 가속 (40°C ± 2°C / 25% RH 이하)</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="form-group"><label>챔버 번호</label>' +
+                        '<select id="card-chamberNo-' + idx + '" onchange="onChamberSelectChange(this,' + idx + ')">' +
+                            buildChamberOptions(cat, chamberNo) +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="form-group full-width" id="card-chamberAdd-' + idx + '" style="display:none;">' +
+                        '<label>새 챔버 번호 입력</label>' +
+                        '<div style="display:flex; gap:8px; align-items:center;">' +
+                            '<input type="text" id="card-chamberNoInput-' + idx + '" placeholder="예: IB12" style="flex:1;">' +
+                            '<button class="btn-calc" style="flex:none; padding:8px 14px; font-size:12px;" onclick="registerAndSelectChamber(' + idx + ')">등록</button>' +
+                            '<button style="flex:none; padding:8px 14px; font-size:12px; background:var(--surface-container-high); border:none; border-radius:var(--radius-md); cursor:pointer; font-family:var(--font-family);" onclick="cancelChamberAdd(' + idx + ')">취소</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group"><label>시작일</label>' +
+                        '<input type="date" id="card-startDate-' + idx + '" value="' + esc(startDate) + '">' +
+                    '</div>' +
+                    '<div class="form-group"><label>단위</label>' +
+                        '<select id="card-unit-' + idx + '">' +
+                            '<option value="month"' + (unit==='month'?' selected':'') + '>개월(Month)</option>' +
+                            '<option value="week"' + (unit==='week'?' selected':'') + '>주(Week)</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="form-group full-width"><label>시험 시점 (쉼표 구분) — ICH Q1A(R2) 권장값 자동 적용</label>' +
+                        '<input type="text" id="card-intervals-' + idx + '" value="' + esc(intervals) + '" placeholder="예: 0,3,6,12,18,24">' +
+                    '</div>' +
+                '</div>' +
+                '<div style="display:flex; gap:8px; margin-top:12px;">' +
+                    '<button class="btn-calc" style="flex:none; padding:8px 16px; font-size:12px;" onclick="calculateCard(' + idx + ')">🔍 일정 확인</button>' +
+                '</div>' +
+                '<div class="condition-preview" id="card-preview-' + idx + '"></div>';
+
+            document.getElementById('conditionList').appendChild(card);
+            updateRemoveBtns();
+        }
+
+        function removeConditionCard(btn) {
+            btn.closest('.condition-card').remove();
+            renumberCards();
+            updateRemoveBtns();
+        }
+
+        function renumberCards() {
+            document.querySelectorAll('.condition-card').forEach(function(card, i) {
+                card.querySelector('.condition-card-title').innerText = '시험 조건 ' + (i + 1);
+            });
+        }
+
+        function updateRemoveBtns() {
+            const cards = document.querySelectorAll('.condition-card');
+            cards.forEach(function(card) {
+                card.querySelector('.btn-remove-condition').style.display = cards.length === 1 ? 'none' : '';
+            });
+        }
+
+        function onCardCategoryChange(select) {
+            const idx = select.closest('.condition-card').dataset.idx;
+            const ich = ICH_DEFAULTS[select.value];
+            if (ich) {
+                document.getElementById('card-unit-' + idx).value = ich.unit;
+                document.getElementById('card-intervals-' + idx).value = ich.intervals;
+            }
+            // 챔버 드롭다운 재구성 (조건 변경 시 해당 조건 챔버만 표시)
+            const chamberSel = document.getElementById('card-chamberNo-' + idx);
+            if (chamberSel && chamberSel.tagName === 'SELECT') {
+                chamberSel.innerHTML = buildChamberOptions(select.value, '');
+                const addPanel = document.getElementById('card-chamberAdd-' + idx);
+                if (addPanel) addPanel.style.display = 'none';
+            }
+        }
+
+        function calculateCard(idx) {
+            const startDate = document.getElementById('card-startDate-' + idx).value;
+            const intervals = document.getElementById('card-intervals-' + idx).value.trim();
+            const unit = document.getElementById('card-unit-' + idx).value;
+            if (!startDate) return alert('시작일을 입력하세요.');
+            if (!intervals) return alert('시험 시점을 입력하세요.');
+
+            const tempItem = { start_date: startDate, unit: unit, intervals: intervals, deviation_history: [] };
+            const points = intervals.split(',').map(function(v) { return v.trim(); }).filter(Boolean);
+            let rows = '';
+            points.forEach(function(val) {
+                const v = parseInt(val); if (isNaN(v)) return;
+                const point = v === 0 ? 'Initial' : v + (unit === 'month' ? 'M' : 'W');
+                const analysis = getAnalysis(tempItem, v);
+                rows += '<tr>' +
+                    '<td style="padding:6px 10px; text-align:center; font-weight:bold;">' + point + '</td>' +
+                    '<td style="padding:6px 10px; text-align:center; color:var(--on-surface-variant);">' + analysis.original + '</td>' +
+                    '</tr>';
+            });
+            if (!rows) return alert('유효한 시험 시점을 입력하세요.');
+
+            const preview = document.getElementById('card-preview-' + idx);
+            preview.innerHTML =
+                '<table style="width:100%; border-collapse:collapse; font-size:12px; min-width:240px;">' +
+                    '<thead><tr style="background:var(--surface-container-high);">' +
+                        '<th style="padding:6px 10px; text-align:center;">시점</th>' +
+                        '<th style="padding:6px 10px; text-align:center;">예정일</th>' +
+                    '</tr></thead>' +
+                    '<tbody>' + rows + '</tbody>' +
+                '</table>';
+            preview.style.display = 'block';
+        }
+
+        function getCommonFields() {
             return {
                 test_no: document.getElementById('testNo').value.trim(),
-                category: document.getElementById('category').value,
                 product_name: document.getElementById('productName').value.trim(),
                 batch_no: document.getElementById('batchNo').value.trim(),
-                chamber_no: document.getElementById('chamberNo').value.trim(),
-                start_date: document.getElementById('startDate').value,
-                unit: document.getElementById('unit').value,
-                intervals: document.getElementById('intervals').value.trim(),
                 assignee: document.getElementById('assignee').value.trim()
             };
+        }
+
+        function getConditions() {
+            return Array.from(document.querySelectorAll('.condition-card')).map(function(card) {
+                const idx = card.dataset.idx;
+                return {
+                    category: document.getElementById('card-category-' + idx).value,
+                    chamber_no: document.getElementById('card-chamberNo-' + idx).value.trim(),
+                    start_date: document.getElementById('card-startDate-' + idx).value,
+                    unit: document.getElementById('card-unit-' + idx).value,
+                    intervals: document.getElementById('card-intervals-' + idx).value.trim()
+                };
+            });
+        }
+
+        function getFormData() {
+            const common = getCommonFields();
+            const cond = getConditions()[0] || {};
+            return Object.assign({}, common, cond);
         }
         function calculate() {
             const data = getFormData();
@@ -3644,9 +4257,12 @@
             }
             // display 기반 모달 — z-index 높은 순서로 확인
             const checks = [
+                { id: 'chamberDetailModal', close: closeChamberDetailModal },
+                { id: 'chamberRegisterModal', close: closeChamberRegisterModal },
                 { id: 'mgmtModal', close: () => document.getElementById('mgmtModal').style.display = 'none' },
                 { id: 'activityModal', close: () => document.getElementById('activityModal').style.display = 'none' },
-                { id: 'registerModal', close: closeRegisterModal },
+                // registerModal: ESC로 닫지 않음 (실수로 입력 내용 날아가는 것 방지)
+                // { id: 'registerModal', close: closeRegisterModal },
                 { id: 'deviationInputModal', close: () => document.getElementById('deviationInputModal').style.display = 'none' },
                 { id: 'deviationViewModal', close: () => document.getElementById('deviationViewModal').style.display = 'none' },
                 { id: 'resultArea', close: closeResultArea },
